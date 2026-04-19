@@ -24,7 +24,7 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=12)
 
-API_BASE_URL = os.getenv("API_BASE_URL", "https://api-ludusacademia.onrender.com")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://ludusacademia-api-test.onrender.com")
 API_PREFIX = os.getenv("API_PREFIX", "/v1")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
@@ -137,7 +137,6 @@ def _json_error(status: int, detail: str, extra: dict | None = None) -> Response
 
 
 def _decode_jwt_part(part: str) -> dict[str, Any]:
-    # Decode JWT parts without signature verification for diagnostics only.
     padded = part + "=" * (-len(part) % 4)
     raw = base64.urlsafe_b64decode(padded.encode("utf-8"))
     return json.loads(raw.decode("utf-8"))
@@ -673,6 +672,14 @@ def api_session():
             },
         }
     )
+
+
+@app.get("/api/debug/token")
+def api_debug_token():
+    token = session.get("access_token")
+    if not token:
+        return jsonify({"authenticated": False, "token": None})
+    return jsonify({"authenticated": True, "token": _token_diagnostics(token)})
 
 
 @app.post("/api/docentes/codigos")
