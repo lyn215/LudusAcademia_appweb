@@ -12,7 +12,7 @@ import { downloadPdf } from "./features/reports/api";
 import { subscribeErrors } from "./lib/errorBus";
 import { formatLocalDate, formatCountdown, secondsUntil } from "./utils/time";
 
-import type { AnalyticsMetric, GrupoInfo } from "./types/contracts";
+import type { AnalyticsMetric, AnalyticsResponse, GrupoInfo } from "./types/contracts";
 
 // ── tiny helpers ──────────────────────────────────────────────────────────────
 function heatLevel(e: number) { return e === 0 ? 0 : e < 3 ? 1 : e < 6 ? 2 : 3; }
@@ -45,7 +45,7 @@ export default function App() {
   const [globalErrors, setGlobalErrors] = useState<string[]>([]);
   useEffect(() => subscribeErrors((msg) => {
     setGlobalErrors((prev) => {
-      if (prev.includes(msg)) return prev;   // deduplicate
+      if (prev.includes(msg)) return prev;
       return [...prev.slice(-2), msg];
     });
   }), []);
@@ -96,13 +96,17 @@ export default function App() {
 
   // ── Groups ────────────────────────────────────────────────────────────────
   const [groupError, setGroupError] = useState("");
-  const groupsQuery = useQuery({
+
+  const groupsQuery = useQuery<GrupoInfo[]>({
     queryKey: ["grupos"],
     queryFn: fetchGroups,
     enabled: !!sessionQuery.data?.authenticated,
     retry: 1,
-    onError: (e: any) => setGroupError(e?.message ?? "Error cargando grupos"),
   });
+
+  useEffect(() => {
+    if (groupsQuery.error) setGroupError((groupsQuery.error as any)?.message ?? "Error cargando grupos");
+  }, [groupsQuery.error]);
 
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
@@ -157,14 +161,17 @@ export default function App() {
   const [uuidByAlias, setUuidByAlias]             = useState<Record<string, string>>({});
   const [analyticsError, setAnalyticsError]       = useState("");
 
-  const analyticsQuery = useQuery({
+  const analyticsQuery = useQuery<AnalyticsResponse>({
     queryKey: ["analytics", selectedGroupId, metrica],
     queryFn:  () => fetchAnalytics(selectedGroupId!, metrica),
     enabled:  analyticsEnabled && selectedGroupId !== null,
     retry: 1,
-    onError: (e: any) => setAnalyticsError(e?.message ?? "Error cargando analítica"),
-    onSuccess: () => setAnalyticsError(""),
   });
+
+  useEffect(() => {
+    if (analyticsQuery.error) setAnalyticsError((analyticsQuery.error as any)?.message ?? "Error cargando analítica");
+    if (analyticsQuery.isSuccess) setAnalyticsError("");
+  }, [analyticsQuery.error, analyticsQuery.isSuccess]);
 
   // ── Reports ───────────────────────────────────────────────────────────────
   const [reportError, setReportError] = useState("");
