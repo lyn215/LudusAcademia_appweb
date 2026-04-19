@@ -4,7 +4,7 @@ from datetime import timedelta
 
 class Config:
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
-    API_BASE_URL = os.getenv("API_BASE_URL", "https://ludusacademia-api-test.onrender.com")
+    API_BASE_URL = os.getenv("API_BASE_URL", "https://ludusacademia-api-test-tjto.onrender.com")
     API_PREFIX = os.getenv("API_PREFIX", "/v1")
     SUPABASE_URL = os.getenv("SUPABASE_URL", "")
     SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
