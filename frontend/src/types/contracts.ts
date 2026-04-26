@@ -35,11 +35,11 @@ export const analyticsMetricSchema = z.union([z.literal("errores"), z.literal("p
 
 export const analyticsItemSchema = z.object({
   alias_alumno: z.string(),
-  uuid_estudiante: z.string().optional(),
+  uuid_estudiante: z.string(),
   misiones_completas: z.number(),
   promedio_errores: z.number(),
   monedas_totales: z.number(),
-  ultima_actividad: z.string(),
+  ultima_actividad: z.string().nullable(),
 });
 
 export const analyticsResponseSchema = z.object({
