@@ -29,7 +29,7 @@ function AliasCell({ alias, uuid, groupId }: AliasCellProps) {
     mutationFn: (newAlias: string) => actualizarAlias(uuid, newAlias),
     onSuccess: () => {
       setCellError("");
-      queryClient.invalidateQueries({ queryKey: ["analytics", groupId, "progreso"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics", groupId] });
     },
     onError: (e: any) => {
       setCellError(e?.message ?? "Error al guardar");
