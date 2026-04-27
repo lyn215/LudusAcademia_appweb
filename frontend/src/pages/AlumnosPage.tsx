@@ -1,15 +1,100 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../components/Button";
 import { InputField } from "../components/Field";
-import { fetchAnalytics } from "../features/analytics/api";
+import { fetchAnalytics, actualizarAlias } from "../features/analytics/api";
 import { downloadPdf } from "../features/reports/api";
 import { formatLocalDate } from "../utils/time";
 import type { GrupoInfo } from "../types/contracts";
 
 function heatLevel(e: number) { return e === 0 ? 0 : e < 3 ? 1 : e < 6 ? 2 : 3; }
 
+// ── Inline-editable alias cell ────────────────────────────────────────────
+interface AliasCellProps {
+  alias: string;
+  uuid: string;
+  groupId: number;
+}
+
+function AliasCell({ alias, uuid, groupId }: AliasCellProps) {
+  const queryClient = useQueryClient();
+  const [editing, setEditing]     = useState(false);
+  const [draft, setDraft]         = useState("");
+  const [cellError, setCellError] = useState("");
+
+  const canEdit = !!uuid;
+
+  const aliasMutation = useMutation({
+    mutationFn: (newAlias: string) => actualizarAlias(uuid, newAlias),
+    onSuccess: () => {
+      setCellError("");
+      queryClient.invalidateQueries({ queryKey: ["analytics", groupId, "progreso"] });
+    },
+    onError: (e: any) => {
+      setCellError(e?.message ?? "Error al guardar");
+    },
+  });
+
+  const startEdit = () => {
+    if (!canEdit) return;
+    setDraft(alias);
+    setCellError("");
+    setEditing(true);
+  };
+
+  // Called on blur and on Enter (via programmatic blur)
+  const commit = () => {
+    const trimmed = draft.trim();
+    setEditing(false);
+    if (!trimmed || trimmed === alias) return;
+    aliasMutation.mutate(trimmed);
+  };
+
+  if (editing) {
+    return (
+      <td>
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter")  e.currentTarget.blur(); // triggers onBlur → commit
+            if (e.key === "Escape") { setDraft(alias); setCellError(""); setEditing(false); }
+          }}
+          onBlur={commit}
+          className="field"
+          style={{ minWidth: 120, padding: "4px 8px", fontSize: "0.85rem" }}
+        />
+      </td>
+    );
+  }
+
+  return (
+    <td>
+      <span
+        onClick={startEdit}
+        title={canEdit ? "Clic para editar" : "Ingresa el UUID para editar el nombre"}
+        style={{
+          cursor: canEdit ? "pointer" : "default",
+          color: aliasMutation.isPending ? "var(--forest-warm)" : undefined,
+          borderBottom: canEdit ? "1px dashed var(--forest-warm)" : undefined,
+          paddingBottom: 1,
+          display: "inline-block",
+        }}
+      >
+        <strong>{aliasMutation.isPending ? draft : alias}</strong>
+      </span>
+      {cellError && (
+        <div style={{ fontSize: "0.72rem", color: "var(--error-color)", marginTop: 3 }}>
+          ⚠ {cellError}
+        </div>
+      )}
+    </td>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────
 interface Props {
   selectedGroupId: number | null;
   selectedGroup: GrupoInfo | undefined;
@@ -111,7 +196,11 @@ export function AlumnosPage({
                   const uuid  = row.uuid_estudiante || groupUuids[row.alias_alumno] || "";
                   return (
                     <tr key={row.alias_alumno}>
-                      <td><strong>{row.alias_alumno}</strong></td>
+                      <AliasCell
+                        alias={row.alias_alumno}
+                        uuid={uuid}
+                        groupId={selectedGroupId!}
+                      />
                       <td>
                         <span className={`heat-dot heat-${level}`}
                           title={["Sin errores","Bajo","Medio","Alto"][level]} />

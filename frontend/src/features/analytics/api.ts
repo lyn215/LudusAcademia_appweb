@@ -8,3 +8,7 @@ export async function fetchAnalytics(idGrupo: number, metrica: AnalyticsMetric):
   });
   return analyticsResponseSchema.parse(response.data);
 }
+
+export async function actualizarAlias(uuid: string, alias: string): Promise<void> {
+  await apiClient.patch(`/docentes/alumnos/${uuid}/alias`, { alias });
+}
