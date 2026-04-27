@@ -53,7 +53,7 @@ export default function App() {
 
   const logoutMutation = useMutation({
     mutationFn: logout,
-    onSuccess: () => { sessionQuery.refetch(); clearErrors(); },
+    onSuccess: () => { localStorage.removeItem("ludus_ultimo_codigo"); sessionQuery.refetch(); clearErrors(); },
   });
 
   const registerMutation = useMutation({

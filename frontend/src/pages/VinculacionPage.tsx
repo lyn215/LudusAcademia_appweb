@@ -30,15 +30,23 @@ export function VinculacionPage({
   const [activeCode, setActiveCode] = useState<StoredCode | null>(null);
   const [tick, setTick] = useState(0);
 
-  // Load from localStorage on first render
+  // Load from localStorage once groups are available; validate ownership
   useEffect(() => {
+    if (!groupsData) return;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setActiveCode(JSON.parse(raw));
+      if (!raw) return;
+      const parsed: StoredCode = JSON.parse(raw);
+      if (!groupsData.some((g) => g.id_grupo === parsed.id_grupo)) {
+        localStorage.removeItem(STORAGE_KEY);
+        setActiveCode(null);
+        return;
+      }
+      setActiveCode(parsed);
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
-  }, []);
+  }, [groupsData]);
 
   useEffect(() => {
     const t = setInterval(() => setTick(v => v + 1), 1000);
