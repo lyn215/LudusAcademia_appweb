@@ -1,24 +1,28 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { type Dispatch, type FormEvent, type SetStateAction, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { fetchAnalytics } from "./features/analytics/api";
 import { login, logout, getSession, register } from "./features/auth/api";
-import { createLinkCode } from "./features/codes/api";
 import { fetchGroups, createGroup } from "./features/groups/api";
 import { fetchHealth } from "./features/health/api";
-import { downloadPdf } from "./features/reports/api";
 import { subscribeErrors } from "./lib/errorBus";
-import { formatCountdown, secondsUntil } from "./utils/time";
 
+import { Sidebar, type Page } from "./components/Sidebar";
 import { LoginPage } from "./pages/LoginPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
 import { CreateGroupPage } from "./pages/CreateGroupPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { AlumnosPage } from "./pages/AlumnosPage";
+import { VinculacionPage } from "./pages/VinculacionPage";
+import { AnaliticaPage } from "./pages/AnaliticaPage";
+import { BancoPreguntasPage } from "./pages/BancoPreguntasPage";
 
-import type { AnalyticsMetric, GrupoInfo } from "./types/contracts";
+import type { GrupoInfo } from "./types/contracts";
 
 export default function App() {
   const queryClient = useQueryClient();
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  const [currentPage, setCurrentPage] = useState<Page>("dashboard");
 
   // ── Global errors ─────────────────────────────────────────────────────────
   const [globalErrors, setGlobalErrors] = useState<string[]>([]);
@@ -65,7 +69,7 @@ export default function App() {
     onError: (e: any) => setAuthError(e?.message ?? "Error al registrarse"),
   });
 
-  // ── Health ────────────────────────────────────────────────────────────────
+  // ── Health (for dashboard stats tile) ────────────────────────────────────
   const healthQuery = useQuery({
     queryKey: ["health"],
     queryFn: fetchHealth,
@@ -82,7 +86,6 @@ export default function App() {
     retry: 1,
   });
 
-  // React Query v5: handle groupsQuery errors via useEffect
   useEffect(() => {
     if (groupsQuery.error) {
       setGroupError((groupsQuery.error as any)?.message ?? "Error cargando grupos");
@@ -116,62 +119,15 @@ export default function App() {
     (g) => g.id_grupo === selectedGroupId,
   );
 
-  // ── Codes ─────────────────────────────────────────────────────────────────
-  const [horasValidez, setHorasValidez] = useState(24);
-  const [codeError, setCodeError]       = useState("");
+  // UUIDs keyed by group then alias — shared across Alumnos and Analítica
+  const [uuidByAlias, setUuidByAlias] =
+    useState<Record<number, Record<string, string>>>({});
 
-  const codeMutation = useMutation({
-    mutationFn: createLinkCode,
-    onError: (e: any) => setCodeError(e?.message ?? "Error generando código"),
-    onSuccess: () => setCodeError(""),
-  });
-
-  const [tick, setTick] = useState(0);
-  useEffect(() => { const t = setInterval(() => setTick(v => v + 1), 1000); return () => clearInterval(t); }, []);
-
-  const countdown = useMemo(() => {
-    if (!codeMutation.data?.expira_el) return null;
-    return secondsUntil(codeMutation.data.expira_el);
-  }, [codeMutation.data, tick]);
-
-  const countdownDisplay = useMemo(() => countdown !== null ? formatCountdown(countdown) : null, [countdown]);
-
-  // ── Analytics ─────────────────────────────────────────────────────────────
-  const [metrica, setMetrica]                   = useState<AnalyticsMetric>("progreso");
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
-  const [analyticsError, setAnalyticsError]     = useState("");
-  // UUIDs keyed by group id then by alias, so each group keeps its own UUIDs during the session
-  const [uuidByAlias, setUuidByAlias] = useState<Record<number, Record<string, string>>>({});
-
-  const analyticsQuery = useQuery({
-    queryKey: ["analytics", selectedGroupId, metrica],
-    queryFn:  () => fetchAnalytics(selectedGroupId!, metrica),
-    enabled:  analyticsEnabled && selectedGroupId !== null,
-    retry: 1,
-  });
-
-  // React Query v5: handle analyticsQuery error/success via useEffect
-  useEffect(() => {
-    if (analyticsQuery.error) {
-      setAnalyticsError((analyticsQuery.error as any)?.message ?? "Error cargando analítica");
-    } else {
-      setAnalyticsError("");
-    }
-  }, [analyticsQuery.error]);
-
-  // ── Reports ───────────────────────────────────────────────────────────────
-  const [reportError, setReportError] = useState("");
-  const reportMutation = useMutation({
-    mutationFn: downloadPdf,
-    onSuccess: (blob, uuid) => {
-      setReportError("");
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = `reporte-${uuid}.pdf`; a.click();
-      URL.revokeObjectURL(url);
-    },
-    onError: (e: any) => setReportError(e?.message ?? "Error descargando PDF"),
-  });
+  // Switch groups: clear analytics cache so stale data never leaks
+  const onSelectGroup = (newGroupId: number) => {
+    queryClient.removeQueries({ queryKey: ["analytics"] });
+    setSelectedGroupId(newGroupId);
+  };
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const onLogin = (e: FormEvent<HTMLFormElement>) => {
@@ -195,27 +151,18 @@ export default function App() {
     createGroupMutation.mutate({ nombre_grupo: newGroupName, nombre_escuela: newGroupSchool });
   };
 
-  // Clear analytics state and cache when switching groups so stale data never leaks
-  const onSelectGroup = (newGroupId: number) => {
-    queryClient.removeQueries({ queryKey: ["analytics"] });
-    setSelectedGroupId(newGroupId);
-    setAnalyticsEnabled(false);
-    setAnalyticsError("");
-    codeMutation.reset();
-  };
-
   // ── Render: loading session ───────────────────────────────────────────────
   if (sessionQuery.isLoading) {
     return (
       <div className="shell-center">
-        <p style={{ color: "var(--muted)", fontFamily: "'DM Mono',monospace", fontSize: "0.85rem" }}>
+        <p style={{ color: "var(--forest-warm)", fontFamily: "'DM Mono',monospace", fontSize: "0.85rem" }}>
           iniciando...
         </p>
       </div>
     );
   }
 
-  // ── Render: auth ──────────────────────────────────────────────────────────
+  // ── Render: auth (no sidebar) ─────────────────────────────────────────────
   if (!sessionQuery.data?.authenticated) {
     return (
       <LoginPage
@@ -237,7 +184,7 @@ export default function App() {
   if (groupsQuery.isLoading) {
     return (
       <div className="shell-center">
-        <p style={{ color: "var(--muted)", fontFamily: "'DM Mono',monospace", fontSize: "0.85rem" }}>
+        <p style={{ color: "var(--forest-warm)", fontFamily: "'DM Mono',monospace", fontSize: "0.85rem" }}>
           cargando grupos...
         </p>
       </div>
@@ -246,7 +193,7 @@ export default function App() {
 
   const noGroups = !groupsQuery.data || groupsQuery.data.length === 0;
 
-  // ── Render: onboarding ────────────────────────────────────────────────────
+  // ── Render: onboarding (no sidebar) ──────────────────────────────────────
   if (noGroups && !showCreateGroup) {
     return (
       <OnboardingPage
@@ -258,7 +205,7 @@ export default function App() {
     );
   }
 
-  // ── Render: create group ──────────────────────────────────────────────────
+  // ── Render: create group (no sidebar) ────────────────────────────────────
   if (showCreateGroup) {
     return (
       <CreateGroupPage
@@ -276,36 +223,62 @@ export default function App() {
     );
   }
 
-  // ── Render: dashboard ─────────────────────────────────────────────────────
+  // ── Render: main app with sidebar ─────────────────────────────────────────
+  const sharedGroupProps = {
+    selectedGroupId,
+    selectedGroup,
+    groupsData:  groupsQuery.data,
+    isFetching:  groupsQuery.isFetching,
+    onSelectGroup,
+  };
+
   return (
-    <DashboardPage
-      sessionData={sessionQuery.data}
-      globalErrors={globalErrors}
-      clearErrors={clearErrors}
-      healthQuery={healthQuery}
-      groupsQuery={groupsQuery}
-      selectedGroupId={selectedGroupId}
-      onSelectGroup={onSelectGroup}
-      setShowCreateGroup={setShowCreateGroup}
-      setGroupError={setGroupError}
-      selectedGroup={selectedGroup}
-      codeMutation={codeMutation}
-      horasValidez={horasValidez}
-      setHorasValidez={setHorasValidez}
-      codeError={codeError}
-      countdown={countdown}
-      countdownDisplay={countdownDisplay}
-      analyticsQuery={analyticsQuery}
-      analyticsEnabled={analyticsEnabled}
-      setAnalyticsEnabled={setAnalyticsEnabled}
-      metrica={metrica}
-      setMetrica={setMetrica}
-      uuidByAlias={uuidByAlias}
-      setUuidByAlias={setUuidByAlias}
-      analyticsError={analyticsError}
-      reportMutation={reportMutation}
-      reportError={reportError}
-      logoutMutation={logoutMutation}
-    />
+    <div className="app-layout">
+      <Sidebar
+        currentPage={currentPage}
+        onNavigate={setCurrentPage}
+        userEmail={sessionQuery.data.user?.email}
+        onLogout={() => logoutMutation.mutate()}
+      />
+
+      <main className="page-content fade-up">
+        {currentPage === "dashboard" && (
+          <DashboardPage
+            sessionData={sessionQuery.data}
+            healthQuery={healthQuery}
+            groupsQuery={groupsQuery}
+            selectedGroupId={selectedGroupId}
+            selectedGroup={selectedGroup}
+            onSelectGroup={onSelectGroup}
+            setShowCreateGroup={setShowCreateGroup}
+            setGroupError={setGroupError}
+            globalErrors={globalErrors}
+            clearErrors={clearErrors}
+          />
+        )}
+
+        {currentPage === "alumnos" && (
+          <AlumnosPage
+            {...sharedGroupProps}
+            uuidByAlias={uuidByAlias}
+            setUuidByAlias={setUuidByAlias}
+          />
+        )}
+
+        {currentPage === "vinculacion" && (
+          <VinculacionPage {...sharedGroupProps} />
+        )}
+
+        {currentPage === "analitica" && (
+          <AnaliticaPage
+            {...sharedGroupProps}
+            uuidByAlias={uuidByAlias}
+            setUuidByAlias={setUuidByAlias}
+          />
+        )}
+
+        {currentPage === "banco" && <BancoPreguntasPage />}
+      </main>
+    </div>
   );
 }

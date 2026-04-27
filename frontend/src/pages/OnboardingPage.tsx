@@ -20,7 +20,7 @@ export function OnboardingPage({ groupError, setGroupError, setShowCreateGroup, 
         </Button>
         <div style={{ marginTop: 12, textAlign: "center" }}>
           <button onClick={() => logoutMutation.mutate()}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "0.8rem" }}>
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--forest-warm)", fontSize: "0.8rem" }}>
             Cerrar sesión
           </button>
         </div>

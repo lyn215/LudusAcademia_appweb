@@ -41,7 +41,7 @@ export function LoginPage({
           <div className="login-logo-mark">L+</div>
           <div>
             <div className="login-logo-text">LudusAcademia+</div>
-            <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>Panel Docente · v2.1</div>
+            <div style={{ fontSize: "0.7rem", color: "var(--forest-warm)" }}>Panel Docente · v2.1</div>
           </div>
         </div>
 
