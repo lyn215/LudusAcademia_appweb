@@ -40,6 +40,7 @@ export const analyticsItemSchema = z.object({
   promedio_errores: z.number(),
   monedas_totales: z.number(),
   ultima_actividad: z.string(),
+  errores_por_nivel: z.record(z.string(), z.number()).optional().default({}),
 });
 
 export const analyticsResponseSchema = z.object({
