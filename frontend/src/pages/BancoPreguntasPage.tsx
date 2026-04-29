@@ -111,9 +111,9 @@ export function BancoPreguntasPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <h2 className="page-title" style={{ marginBottom: 4 }}>📚 Banco de Preguntas</h2>
-        <p className="page-subtitle">Tercer Grado — LudusAcademia+</p>
+      <div style={{ display: "block", marginBottom: 24 }}>
+        <h2 className="page-title" style={{ marginBottom: 16 }}>📚 Banco de Preguntas</h2>
+        <p className="page-subtitle" style={{ marginBottom: 0 }}>Tercer Grado — LudusAcademia+</p>
       </div>
 
       {/* Level tabs */}

@@ -78,8 +78,10 @@ export function VinculacionPage({
 
   return (
     <div>
-      <h2 className="page-title">🔗 Vinculación</h2>
-      <p className="page-subtitle">Genera el código LUDUXX para que tus alumnos se conecten a la app.</p>
+      <div style={{ display: "block", marginBottom: 24 }}>
+        <h2 className="page-title" style={{ marginBottom: 16 }}>🔗 Vinculación</h2>
+        <p className="page-subtitle" style={{ marginBottom: 0 }}>Genera el código LUDUXX para que tus alumnos se conecten a la app.</p>
+      </div>
 
       {/* Group selector */}
       <div className="card mb-16">

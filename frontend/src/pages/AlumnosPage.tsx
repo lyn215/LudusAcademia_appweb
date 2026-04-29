@@ -145,10 +145,10 @@ export function AlumnosPage({
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <h2 className="page-title" style={{ marginBottom: 4 }}>👥 Alumnos</h2>
+      <div style={{ display: "block", marginBottom: 24 }}>
+        <h2 className="page-title" style={{ marginBottom: 16 }}>👥 Alumnos</h2>
         {selectedGroup && (
-          <p className="page-subtitle">
+          <p className="page-subtitle" style={{ marginBottom: 0 }}>
             {selectedGroup.nombre_grupo} — {selectedGroup.total_alumnos} alumno{selectedGroup.total_alumnos !== 1 ? "s" : ""}
           </p>
         )}

@@ -124,10 +124,10 @@ export function AnaliticaPage({
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <h2 className="page-title" style={{ marginBottom: 4 }}>📊 Analítica</h2>
+      <div style={{ display: "block", marginBottom: 24 }}>
+        <h2 className="page-title" style={{ marginBottom: 16 }}>📊 Analítica</h2>
         {selectedGroup && (
-          <p className="page-subtitle">
+          <p className="page-subtitle" style={{ marginBottom: 0 }}>
             Métricas de <strong style={{ color: "var(--text-light)" }}>{selectedGroup.nombre_grupo}</strong>
           </p>
         )}
