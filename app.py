@@ -24,7 +24,7 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=12)
 
-API_BASE_URL = os.getenv("API_BASE_URL", "https://api-ludusacademia.onrender.com")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://ludusacademia-api-test.onrender.com")
 API_PREFIX = os.getenv("API_PREFIX", "/v1")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
@@ -137,7 +137,6 @@ def _json_error(status: int, detail: str, extra: dict | None = None) -> Response
 
 
 def _decode_jwt_part(part: str) -> dict[str, Any]:
-    # Decode JWT parts without signature verification for diagnostics only.
     padded = part + "=" * (-len(part) % 4)
     raw = base64.urlsafe_b64decode(padded.encode("utf-8"))
     return json.loads(raw.decode("utf-8"))
@@ -675,6 +674,14 @@ def api_session():
     )
 
 
+@app.get("/api/debug/token")
+def api_debug_token():
+    token = session.get("access_token")
+    if not token:
+        return jsonify({"authenticated": False, "token": None})
+    return jsonify({"authenticated": True, "token": _token_diagnostics(token)})
+
+
 @app.post("/api/docentes/codigos")
 def api_docentes_codigos():
     token = _require_auth()
@@ -728,6 +735,33 @@ def api_docentes_pdf(uuid_estudiante: str):
         as_attachment=True,
         download_name=f"reporte-{uuid_estudiante}.pdf",
     )
+
+
+@app.get("/api/docentes/grupos")
+def api_docentes_grupos_list():
+    token = _require_auth()
+    response = _client().request("GET", "/docentes/grupos", token=token)
+    return jsonify(response.json())
+
+
+@app.post("/api/docentes/grupos")
+def api_docentes_grupos_create():
+    token = _require_auth()
+    data = request.get_json(silent=True) or {}
+
+    nombre_grupo = str(data.get("nombre_grupo", "")).strip()
+    nombre_escuela = str(data.get("nombre_escuela", "")).strip()
+
+    if not nombre_grupo:
+        return _json_error(422, "nombre_grupo es obligatorio.")
+
+    response = _client().request(
+        "POST",
+        "/docentes/grupos",
+        token=token,
+        json_body={"nombre_grupo": nombre_grupo, "nombre_escuela": nombre_escuela},
+    )
+    return jsonify(response.json()), 201
 
 
 if __name__ == "__main__":
