@@ -737,5 +737,32 @@ def api_docentes_pdf(uuid_estudiante: str):
     )
 
 
+@app.get("/api/docentes/grupos")
+def api_docentes_grupos_list():
+    token = _require_auth()
+    response = _client().request("GET", "/docentes/grupos", token=token)
+    return jsonify(response.json())
+
+
+@app.post("/api/docentes/grupos")
+def api_docentes_grupos_create():
+    token = _require_auth()
+    data = request.get_json(silent=True) or {}
+
+    nombre_grupo = str(data.get("nombre_grupo", "")).strip()
+    nombre_escuela = str(data.get("nombre_escuela", "")).strip()
+
+    if not nombre_grupo:
+        return _json_error(422, "nombre_grupo es obligatorio.")
+
+    response = _client().request(
+        "POST",
+        "/docentes/grupos",
+        token=token,
+        json_body={"nombre_grupo": nombre_grupo, "nombre_escuela": nombre_escuela},
+    )
+    return jsonify(response.json()), 201
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
