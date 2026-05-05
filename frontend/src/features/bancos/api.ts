@@ -6,6 +6,14 @@ export const getBancos = async (): Promise<BancoPreguntas[]> => {
   return response.data;
 };
 
+export const getBancosAsignados = async (grupo_id: string): Promise<string[]> => {
+  // TODO: endpoint aún no existe en la API: GET /bancos/asignados/{grupo_id}
+  console.log("TODO: obtener bancos asignados para grupo", grupo_id);
+  return [];
+  // const response = await httpClient.get(`/bancos/asignados/${grupo_id}`);
+  // return response.data;
+};
+
 export const asignarBanco = async (asignacion: AsignacionBanco): Promise<void> => {
   console.log("Mock POST /bancos/asignar", asignacion);
   // await httpClient.post("/bancos/asignar", asignacion);

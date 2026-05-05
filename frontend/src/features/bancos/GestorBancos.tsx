@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getBancos, asignarBanco, desasignarBanco } from "./api";
+import { getBancos, getBancosAsignados, asignarBanco, desasignarBanco } from "./api";
 import { Button } from "../../components/Button";
 import type { BancoPreguntas, AsignacionBanco } from "../../types/contracts";
 
@@ -11,19 +11,44 @@ interface GestorBancosProps {
 export function GestorBancos({ grupo_id }: GestorBancosProps) {
   const [asignados, setAsignados] = useState<Set<string>>(new Set());
 
-  const { data: bancos, isLoading, error, refetch } = useQuery({
+  const {
+    data: bancos,
+    isLoading: bancosLoading,
+    error: bancosError,
+    refetch: refetchBancos,
+  } = useQuery({
     queryKey: ["bancos"],
     queryFn: getBancos,
   });
+
+  const {
+    data: bancosAsignados,
+    isLoading: asignadosLoading,
+    error: asignadosError,
+    refetch: refetchAsignados,
+  } = useQuery({
+    queryKey: ["bancosAsignados", grupo_id],
+    queryFn: () => getBancosAsignados(grupo_id),
+    enabled: Boolean(grupo_id),
+  });
+
+  const isLoading = bancosLoading || asignadosLoading;
+  const error = bancosError || asignadosError;
+
+  useEffect(() => {
+    if (bancosAsignados && bancosAsignados.length > 0) {
+      setAsignados(new Set(bancosAsignados));
+    }
+  }, [bancosAsignados]);
 
   const handleToggle = async (banco_id: string, checked: boolean) => {
     const asignacion: AsignacionBanco = { banco_id, grupo_id };
     if (checked) {
       await asignarBanco(asignacion);
-      setAsignados(prev => new Set(prev).add(banco_id));
+      setAsignados((prev) => new Set(prev).add(banco_id));
     } else {
       await desasignarBanco(asignacion);
-      setAsignados(prev => {
+      setAsignados((prev) => {
         const newSet = new Set(prev);
         newSet.delete(banco_id);
         return newSet;
@@ -51,7 +76,12 @@ export function GestorBancos({ grupo_id }: GestorBancosProps) {
       <div className="bancos-container">
         <div className="error-message">
           Error al cargar bancos: {error.message}
-          <Button onClick={() => refetch()}>Reintentar</Button>
+          <Button onClick={() => {
+            refetchBancos();
+            refetchAsignados();
+          }}>
+            Reintentar
+          </Button>
         </div>
       </div>
     );
