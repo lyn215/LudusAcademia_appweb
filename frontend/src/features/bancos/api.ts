@@ -1,28 +1,20 @@
-import { apiClient } from "../../lib/httpClient";
+import { apiClient as httpClient } from "../../lib/httpClient";
+import type { BancoPreguntas } from "../../types/contracts";
 
-export interface Banco {
-  id: string;
-  nombre: string;
-  materia: string;
-  nivel: string;
-  descripcion: string;
-  total_preguntas: number;
-}
+export const getBancos = async (): Promise<BancoPreguntas[]> => {
+  const response = await httpClient.get("/bancos");
+  return response.data;
+};
 
-export async function fetchBancos(): Promise<Banco[]> {
-  const res = await apiClient.get("/bancos");
-  return res.data;
-}
+export const getBancosAsignados = async (grupo_id: string): Promise<string[]> => {
+  const response = await httpClient.get<string[]>(`/bancos/asignados/${grupo_id}`);
+  return response.data;
+};
 
-export async function fetchBancosAsignados(grupoId: string): Promise<string[]> {
-  const res = await apiClient.get(`/bancos/asignar/${grupoId}`);
-  return res.data;
-}
+export const asignarBanco = async (banco_id: string, grupo_id: string): Promise<void> => {
+  await httpClient.post(`/bancos/asignar/${grupo_id}/${banco_id}`);
+};
 
-export async function asignarBanco(grupoId: string, bancoId: string): Promise<void> {
-  await apiClient.post(`/bancos/asignar/${grupoId}/${bancoId}`);
-}
-
-export async function desasignarBanco(bancoId: string, grupoId: string): Promise<void> {
-  await apiClient.delete(`/bancos/asignar/${grupoId}/${bancoId}`);
-}
+export const desasignarBanco = async (banco_id: string, grupo_id: string): Promise<void> => {
+  await httpClient.delete(`/bancos/asignar/${grupo_id}/${banco_id}`);
+};

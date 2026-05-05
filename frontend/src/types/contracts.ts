@@ -92,3 +92,18 @@ export type AnalyticsResponse = z.infer<typeof analyticsResponseSchema>;
 export type CrearGrupoRequest = z.infer<typeof crearGrupoRequestSchema>;
 export type CrearGrupoResponse = z.infer<typeof crearGrupoResponseSchema>;
 export type GrupoInfo = z.infer<typeof grupoInfoSchema>;
+
+export interface BancoPreguntas {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
+  materia: string;
+  nivel_grado: number;
+  activo: boolean;
+  total_preguntas?: number;
+}
+
+export interface AsignacionBanco {
+  banco_id: string;
+  grupo_id: string;
+}

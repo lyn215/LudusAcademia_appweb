@@ -1,33 +1,29 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  asignarBanco,
-  desasignarBanco,
-  fetchBancos,
-  fetchBancosAsignados,
-} from "../features/bancos/api";
+import { asignarBanco, desasignarBanco, getBancos, getBancosAsignados } from "./api";
+import type { BancoPreguntas } from "../../types/contracts";
 
-interface Props {
-  grupoId: string;
+interface GestorBancosProps {
+  grupo_id: string;
 }
 
-export function GestorBancos({ grupoId }: Props) {
+export function GestorBancos({ grupo_id }: GestorBancosProps) {
   const queryClient = useQueryClient();
 
   const bancosQuery = useQuery({
     queryKey: ["bancos"],
-    queryFn: fetchBancos,
+    queryFn: getBancos,
     retry: 1,
   });
 
   const asignadosQuery = useQuery({
-    queryKey: ["bancos-asignados", grupoId],
-    queryFn: () => fetchBancosAsignados(grupoId),
-    enabled: !!grupoId,
+    queryKey: ["bancosAsignados", grupo_id],
+    queryFn: () => getBancosAsignados(grupo_id),
+    enabled: Boolean(grupo_id),
     retry: 1,
   });
 
-  // Local state mirrors remote; at most 1 banco active (radio logic)
+  // Radio state: at most 1 banco active at a time
   const [asignados, setAsignados] = useState<string[]>([]);
 
   useEffect(() => {
@@ -35,32 +31,32 @@ export function GestorBancos({ grupoId }: Props) {
   }, [asignadosQuery.data]);
 
   const asignarMutation = useMutation({
-    mutationFn: ({ gid, bid }: { gid: string; bid: string }) =>
-      asignarBanco(gid, bid),
+    mutationFn: ({ banco_id, grupo_id: gid }: { banco_id: string; grupo_id: string }) =>
+      asignarBanco(banco_id, gid),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["bancos-asignados", grupoId] }),
+      queryClient.invalidateQueries({ queryKey: ["bancosAsignados", grupo_id] }),
   });
 
   const desasignarMutation = useMutation({
-    mutationFn: ({ bid, gid }: { bid: string; gid: string }) =>
-      desasignarBanco(bid, gid),
+    mutationFn: ({ banco_id, grupo_id: gid }: { banco_id: string; grupo_id: string }) =>
+      desasignarBanco(banco_id, gid),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["bancos-asignados", grupoId] }),
+      queryClient.invalidateQueries({ queryKey: ["bancosAsignados", grupo_id] }),
   });
 
   const isMutating = asignarMutation.isPending || desasignarMutation.isPending;
 
-  const handleToggle = (bancoId: string) => {
+  const handleToggle = (banco_id: string) => {
     if (isMutating) return;
-    const isActive = asignados.includes(bancoId);
+    const isActive = asignados.includes(banco_id);
     if (isActive) {
-      // Deactivate current banco
+      // Deactivate currently active banco
       setAsignados([]);
-      desasignarMutation.mutate({ bid: bancoId, gid: grupoId });
+      desasignarMutation.mutate({ banco_id, grupo_id });
     } else {
-      // Radio: activate only this one
-      setAsignados([bancoId]);
-      asignarMutation.mutate({ gid: grupoId, bid: bancoId });
+      // Radio: activate only this banco, deactivate any other
+      setAsignados([banco_id]);
+      asignarMutation.mutate({ banco_id, grupo_id });
     }
   };
 
@@ -73,10 +69,10 @@ export function GestorBancos({ grupoId }: Props) {
   }
 
   if (bancosQuery.error) {
-    return <div className="alert">⚠ Error cargando bancos de preguntas</div>;
+    return <div className="alert">⚠ Error al cargar bancos de preguntas</div>;
   }
 
-  const bancos = bancosQuery.data ?? [];
+  const bancos: BancoPreguntas[] = bancosQuery.data ?? [];
 
   if (bancos.length === 0) {
     return (
@@ -132,8 +128,8 @@ export function GestorBancos({ grupoId }: Props) {
                   <p className="text-sm font-medium text-slate-200">{banco.materia}</p>
                 </div>
                 <div>
-                  <span className="text-xs uppercase tracking-wide text-slate-500">Nivel</span>
-                  <p className="text-sm font-medium text-slate-200">{banco.nivel}</p>
+                  <span className="text-xs uppercase tracking-wide text-slate-500">Nivel/Grado</span>
+                  <p className="text-sm font-medium text-slate-200">{banco.nivel_grado}</p>
                 </div>
                 {banco.descripcion && (
                   <div>
@@ -147,7 +143,7 @@ export function GestorBancos({ grupoId }: Props) {
             {/* Footer: question count + active badge */}
             <div className="mt-4 pt-4 border-t border-slate-700 flex items-center justify-between">
               <span className="text-xs text-slate-400 font-mono">
-                {banco.total_preguntas} pregunta{banco.total_preguntas !== 1 ? "s" : ""}
+                {banco.total_preguntas ?? 0} pregunta{(banco.total_preguntas ?? 0) !== 1 ? "s" : ""}
               </span>
               {isActive && (
                 <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">

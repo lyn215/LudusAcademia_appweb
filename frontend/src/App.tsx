@@ -14,7 +14,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { AlumnosPage } from "./pages/AlumnosPage";
 import { VinculacionPage } from "./pages/VinculacionPage";
 import { AnaliticaPage } from "./pages/AnaliticaPage";
-import { BancoPreguntasPage } from "./pages/BancoPreguntasPage";
+import { GestorBancos } from "./features/bancos/GestorBancos";
 
 import type { GrupoInfo } from "./types/contracts";
 
@@ -277,7 +277,9 @@ export default function App() {
           />
         )}
 
-        {currentPage === "banco" && <BancoPreguntasPage />}
+        {currentPage === "banco" && (
+          <GestorBancos grupo_id={selectedGroupId ?? "grupo-temporal-123"} />
+        )}
       </main>
     </div>
   );
