@@ -10,7 +10,7 @@ const STORAGE_KEY = "ludus_ultimo_codigo";
 
 interface StoredCode {
   codigo: string;
-  expira_el: string;
+  expires_at: string;
   id_grupo: string;
 }
 
@@ -59,7 +59,7 @@ export function VinculacionPage({
       setCodeError("");
       const stored: StoredCode = {
         codigo:    data.codigo_vinculacion,
-        expira_el: data.expira_el,
+        expires_at: data.expires_at,
         id_grupo:  selectedGroupId!,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
@@ -72,8 +72,8 @@ export function VinculacionPage({
   });
 
   const countdown = useMemo(() => {
-    if (!activeCode?.expira_el) return null;
-    return secondsUntil(activeCode.expira_el);
+    if (!activeCode?.expires_at) return null;
+    return secondsUntil(activeCode.expires_at);
   }, [activeCode, tick]);
 
   const countdownDisplay = useMemo(() => countdown !== null ? formatCountdown(countdown) : null, [countdown]);

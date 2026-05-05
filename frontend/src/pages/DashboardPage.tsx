@@ -5,7 +5,7 @@ import type { GrupoInfo, HealthResponse, SessionResponse } from "../types/contra
 
 interface StoredCode {
   codigo: string;
-  expira_el: string;
+  expires_at: string;
   id_grupo: string;
 }
 
@@ -70,8 +70,8 @@ export function DashboardPage({
   }, []);
 
   const lastCodeCountdown = useMemo(() => {
-    if (!lastCode?.expira_el) return null;
-    return secondsUntil(lastCode.expira_el);
+    if (!lastCode?.expires_at) return null;
+    return secondsUntil(lastCode.expires_at);
   }, [lastCode, tick]);
 
   return (

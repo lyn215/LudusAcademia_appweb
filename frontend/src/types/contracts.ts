@@ -28,7 +28,7 @@ export const generateCodeSchema = z.object({
 
 export const codeResponseSchema = z.object({
   codigo_vinculacion: z.string().min(1),
-  expira_el: z.string(),
+  expires_at: z.string(),
 });
 
 export const analyticsMetricSchema = z.union([z.literal("errores"), z.literal("progreso")]);
