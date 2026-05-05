@@ -11,12 +11,10 @@ export const getBancosAsignados = async (grupo_id: string): Promise<string[]> =>
   return response.data;
 };
 
-export const asignarBanco = async (asignacion: AsignacionBanco): Promise<void> => {
-  console.log("Mock POST /bancos/asignar", asignacion);
-  // await httpClient.post("/bancos/asignar", asignacion);
+export const asignarBanco = async (banco_id: string, grupo_id: string): Promise<void> => {
+  await httpClient.post("/bancos/asignar", { banco_id, grupo_id });
 };
 
-export const desasignarBanco = async (asignacion: AsignacionBanco): Promise<void> => {
-  console.log("Mock DELETE /bancos/asignar", asignacion);
-  // await httpClient.delete("/bancos/asignar", { data: asignacion });
+export const desasignarBanco = async (banco_id: string, grupo_id: string): Promise<void> => {
+  await httpClient.delete("/bancos/asignar", { data: { banco_id, grupo_id } });
 };

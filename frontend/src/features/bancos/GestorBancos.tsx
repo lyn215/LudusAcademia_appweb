@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getBancos, getBancosAsignados, asignarBanco, desasignarBanco } from "./api";
 import { Button } from "../../components/Button";
-import type { BancoPreguntas, AsignacionBanco } from "../../types/contracts";
+import type { BancoPreguntas } from "../../types/contracts";
 
 interface GestorBancosProps {
   grupo_id: string;
@@ -42,12 +42,11 @@ export function GestorBancos({ grupo_id }: GestorBancosProps) {
   }, [bancosAsignados]);
 
   const handleToggle = async (banco_id: string, checked: boolean) => {
-    const asignacion: AsignacionBanco = { banco_id, grupo_id };
     if (checked) {
-      await asignarBanco(asignacion);
+      await asignarBanco(banco_id, grupo_id);
       setAsignados((prev) => new Set(prev).add(banco_id));
     } else {
-      await desasignarBanco(asignacion);
+      await desasignarBanco(banco_id, grupo_id);
       setAsignados((prev) => {
         const newSet = new Set(prev);
         newSet.delete(banco_id);
