@@ -44,7 +44,7 @@ export const analyticsItemSchema = z.object({
 });
 
 export const analyticsResponseSchema = z.object({
-  id_grupo: z.number(),
+  id_grupo: z.string(),
   nombre_grupo: z.string(),
   total_alumnos: z.number(),
   metricas: z.array(analyticsItemSchema),
