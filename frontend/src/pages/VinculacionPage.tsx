@@ -65,7 +65,10 @@ export function VinculacionPage({
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
       setActiveCode(stored);
     },
-    onError: (e: any) => setCodeError(e?.message ?? "Error generando código"),
+    onError: (e: any) => {
+      const errorMsg = e.response?.data?.detail ? JSON.stringify(e.response.data.detail) : e.message;
+      setCodeError(errorMsg ?? "Error generando código");
+    },
   });
 
   const countdown = useMemo(() => {
@@ -133,7 +136,7 @@ export function VinculacionPage({
                 />
               </div>
               <Button
-                onClick={() => codeMutation.mutate({ id: selectedGroup.id, horas_validez: horasValidez })}
+                onClick={() => codeMutation.mutate({ id_grupo: selectedGroup.id, horas_validez: horasValidez })}
                 disabled={codeMutation.isPending}
               >
                 {codeMutation.isPending ? "Generando..." : "Generar Código"}

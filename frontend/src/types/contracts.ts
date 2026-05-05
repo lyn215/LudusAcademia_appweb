@@ -22,7 +22,7 @@ export const loginSchema = z.object({
 });
 
 export const generateCodeSchema = z.object({
-  id: z.string(),
+  id_grupo: z.string(),
   horas_validez: z.number().int().min(1).max(168),
 });
 
