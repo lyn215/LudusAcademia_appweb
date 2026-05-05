@@ -670,3 +670,5 @@ td .field { padding: 6px 10px; font-size: 0.8rem; }
 .mb-24 { margin-bottom: 24px; }
 .mt-8  { margin-top: 8px; }
 .mt-16 { margin-top: 16px; }
+
+@tailwind utilities;
