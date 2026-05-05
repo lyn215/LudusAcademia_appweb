@@ -22,7 +22,7 @@ export const loginSchema = z.object({
 });
 
 export const generateCodeSchema = z.object({
-  id_grupo: z.number().int().positive(),
+  id: z.string(),
   horas_validez: z.number().int().min(1).max(168),
 });
 
@@ -67,20 +67,20 @@ export const crearGrupoRequestSchema = z.object({
   nombre_escuela: z.string().min(1).max(200),
 });
 
-export const crearGrupoResponseSchema = z.object({
-  id_grupo: z.number(),
-  nombre_grupo: z.string(),
-  nombre_escuela: z.string(),
-});
-
 export const grupoInfoSchema = z.object({
-  id_grupo: z.number(),
+  id: z.string(),
   nombre_grupo: z.string(),
-  nombre_escuela: z.string(),
-  total_alumnos: z.number(),
+  docente_id: z.string(),
+  codigo_acceso: z.string().nullable(),
+  activo: z.boolean(),
+  created_at: z.string(),
+  nombre_escuela: z.string().nullable(),
+  total_estudiantes: z.number(),
 });
 
 export const gruposListSchema = z.array(grupoInfoSchema);
+
+export const crearGrupoResponseSchema = grupoInfoSchema;
 
 export type HealthResponse = z.infer<typeof healthSchema>;
 export type SessionResponse = z.infer<typeof sessionSchema>;

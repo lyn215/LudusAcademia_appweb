@@ -92,7 +92,7 @@ export default function App() {
     }
   }, [groupsQuery.error]);
 
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupName, setNewGroupName]       = useState("");
   const [newGroupSchool, setNewGroupSchool]   = useState("Escuela 5 de Mayo de 1862");
@@ -102,7 +102,7 @@ export default function App() {
     onSuccess: (data) => {
       setGroupError("");
       groupsQuery.refetch();
-      setSelectedGroupId(data.id_grupo);
+      setSelectedGroupId(data.id);
       setShowCreateGroup(false);
       setNewGroupName("");
     },
@@ -111,20 +111,20 @@ export default function App() {
 
   useEffect(() => {
     if (groupsQuery.data?.length && selectedGroupId === null) {
-      setSelectedGroupId(groupsQuery.data[0].id_grupo);
+      setSelectedGroupId(groupsQuery.data[0].id);
     }
   }, [groupsQuery.data, selectedGroupId]);
 
   const selectedGroup: GrupoInfo | undefined = groupsQuery.data?.find(
-    (g) => g.id_grupo === selectedGroupId,
+    (g) => g.id === selectedGroupId,
   );
 
   // UUIDs keyed by group then alias — shared across Alumnos and Analítica
   const [uuidByAlias, setUuidByAlias] =
-    useState<Record<number, Record<string, string>>>({});
+    useState<Record<string, Record<string, string>>>({});
 
   // Switch groups: clear analytics cache so stale data never leaks
-  const onSelectGroup = (newGroupId: number) => {
+  const onSelectGroup = (newGroupId: string) => {
     queryClient.removeQueries({ queryKey: ["analytics"] });
     setSelectedGroupId(newGroupId);
   };

@@ -11,15 +11,15 @@ const STORAGE_KEY = "ludus_ultimo_codigo";
 interface StoredCode {
   codigo: string;
   expira_el: string;
-  id_grupo: number;
+  id_grupo: string;
 }
 
 interface Props {
-  selectedGroupId: number | null;
+  selectedGroupId: string | null;
   selectedGroup: GrupoInfo | undefined;
   groupsData: GrupoInfo[] | undefined;
   isFetching: boolean;
-  onSelectGroup: (id: number) => void;
+  onSelectGroup: (id: string) => void;
 }
 
 export function VinculacionPage({
@@ -37,7 +37,7 @@ export function VinculacionPage({
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const parsed: StoredCode = JSON.parse(raw);
-      if (!groupsData.some((g) => g.id_grupo === parsed.id_grupo)) {
+      if (!groupsData.some((g) => g.id === parsed.id_grupo)) {
         localStorage.removeItem(STORAGE_KEY);
         setActiveCode(null);
         return;
@@ -90,12 +90,12 @@ export function VinculacionPage({
           <>
             <div className="group-chips">
               {groupsData.map((grupo) => (
-                <button key={grupo.id_grupo}
-                  className={`group-chip${selectedGroupId === grupo.id_grupo ? " group-chip--active" : ""}${isFetching ? " group-chip--updating" : ""}`}
-                  onClick={() => onSelectGroup(grupo.id_grupo)}>
+                <button key={grupo.id}
+                  className={`group-chip${selectedGroupId === grupo.id ? " group-chip--active" : ""}${isFetching ? " group-chip--updating" : ""}`}
+                  onClick={() => onSelectGroup(grupo.id)}>
                   <span className="chip-name">{grupo.nombre_grupo}</span>
                   <span className="chip-count">
-                    {grupo.total_alumnos} alumno{grupo.total_alumnos !== 1 ? "s" : ""} · ID {grupo.id_grupo}
+                    {grupo.total_estudiantes} alumno{grupo.total_estudiantes !== 1 ? "s" : ""} · {grupo.id.slice(0, 8)}
                   </span>
                 </button>
               ))}
@@ -133,7 +133,7 @@ export function VinculacionPage({
                 />
               </div>
               <Button
-                onClick={() => codeMutation.mutate({ id_grupo: selectedGroup.id_grupo, horas_validez: horasValidez })}
+                onClick={() => codeMutation.mutate({ id: selectedGroup.id, horas_validez: horasValidez })}
                 disabled={codeMutation.isPending}
               >
                 {codeMutation.isPending ? "Generando..." : "Generar Código"}

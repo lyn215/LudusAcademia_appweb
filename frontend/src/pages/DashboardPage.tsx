@@ -6,7 +6,7 @@ import type { GrupoInfo, HealthResponse, SessionResponse } from "../types/contra
 interface StoredCode {
   codigo: string;
   expira_el: string;
-  id_grupo: number;
+  id_grupo: string;
 }
 
 function Dot({ ok }: { ok: boolean }) {
@@ -36,9 +36,9 @@ interface Props {
   sessionData: SessionResponse;
   healthQuery: { data?: HealthResponse; isLoading: boolean };
   groupsQuery: { data?: GrupoInfo[]; isFetching: boolean };
-  selectedGroupId: number | null;
+  selectedGroupId: string | null;
   selectedGroup: GrupoInfo | undefined;
-  onSelectGroup: (id: number) => void;
+  onSelectGroup: (id: string) => void;
   setShowCreateGroup: (v: boolean) => void;
   setGroupError: (e: string) => void;
   globalErrors: string[];
@@ -51,7 +51,7 @@ export function DashboardPage({
   setShowCreateGroup, setGroupError,
   globalErrors, clearErrors,
 }: Props) {
-  const totalAlumnos = groupsQuery.data?.reduce((s, g) => s + g.total_alumnos, 0) ?? 0;
+  const totalAlumnos = groupsQuery.data?.reduce((s, g) => s + g.total_estudiantes, 0) ?? 0;
 
   // ── Last code from localStorage ───────────────────────────────────────────
   const [lastCode, setLastCode] = useState<StoredCode | null>(null);
@@ -128,11 +128,11 @@ export function DashboardPage({
           </div>
           <div className="group-chips mb-12">
             {groupsQuery.data?.map((grupo) => (
-              <button key={grupo.id_grupo}
-                className={`group-chip${selectedGroupId === grupo.id_grupo ? " group-chip--active" : ""}${groupsQuery.isFetching ? " group-chip--updating" : ""}`}
-                onClick={() => onSelectGroup(grupo.id_grupo)}>
+              <button key={grupo.id}
+                className={`group-chip${selectedGroupId === grupo.id ? " group-chip--active" : ""}${groupsQuery.isFetching ? " group-chip--updating" : ""}`}
+                onClick={() => onSelectGroup(grupo.id)}>
                 <span className="chip-name">{grupo.nombre_grupo}</span>
-                <span className="chip-count">{grupo.total_alumnos} alumno{grupo.total_alumnos !== 1 ? "s" : ""} · ID {grupo.id_grupo}</span>
+                <span className="chip-count">{grupo.total_estudiantes} alumno{grupo.total_estudiantes !== 1 ? "s" : ""} · {grupo.id.slice(0, 8)}</span>
               </button>
             ))}
           </div>
@@ -146,10 +146,10 @@ export function DashboardPage({
               <div className="divider" />
               <div style={{ display: "flex", gap: 20, flexWrap: "wrap", fontSize: "0.82rem" }}>
                 <span style={{ color: "var(--forest-warm)" }}>
-                  Escuela: <strong style={{ color: "var(--text-light)" }}>{selectedGroup.nombre_escuela}</strong>
+                  Escuela: <strong style={{ color: "var(--text-light)" }}>{selectedGroup.nombre_escuela || "—"}</strong>
                 </span>
                 <span style={{ color: "var(--forest-warm)" }}>
-                  Alumnos: <strong style={{ color: "var(--forest-action)" }}>{selectedGroup.total_alumnos}</strong>
+                  Alumnos: <strong style={{ color: "var(--forest-action)" }}>{selectedGroup.total_estudiantes}</strong>
                 </span>
               </div>
             </>
@@ -173,7 +173,7 @@ export function DashboardPage({
                     : "—"}
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--forest-warm)", marginTop: 4 }}>
-                Grupo ID {lastCode.id_grupo}
+                Grupo {lastCode.id_grupo.slice(0, 8)}
               </div>
             </>
           ) : (

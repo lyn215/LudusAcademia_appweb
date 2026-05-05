@@ -42,13 +42,13 @@ function groupAverages(data: AnalyticsResponse): Record<string, number | undefin
 
 // ── Props ──────────────────────────────────────────────────────────────────
 interface Props {
-  selectedGroupId: number | null;
+  selectedGroupId: string | null;
   selectedGroup: GrupoInfo | undefined;
   groupsData: GrupoInfo[] | undefined;
   isFetching: boolean;
-  onSelectGroup: (id: number) => void;
-  uuidByAlias: Record<number, Record<string, string>>;
-  setUuidByAlias: Dispatch<SetStateAction<Record<number, Record<string, string>>>>;
+  onSelectGroup: (id: string) => void;
+  uuidByAlias: Record<string, Record<string, string>>;
+  setUuidByAlias: Dispatch<SetStateAction<Record<string, Record<string, string>>>>;
 }
 
 export function AnaliticaPage({

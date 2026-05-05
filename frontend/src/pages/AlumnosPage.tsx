@@ -14,7 +14,7 @@ function heatLevel(e: number) { return e === 0 ? 0 : e < 3 ? 1 : e < 6 ? 2 : 3; 
 interface AliasCellProps {
   alias: string;
   uuid: string;
-  groupId: number;
+  groupId: string;
 }
 
 function AliasCell({ alias, uuid, groupId }: AliasCellProps) {
@@ -96,13 +96,13 @@ function AliasCell({ alias, uuid, groupId }: AliasCellProps) {
 
 // ── Page ──────────────────────────────────────────────────────────────────
 interface Props {
-  selectedGroupId: number | null;
+  selectedGroupId: string | null;
   selectedGroup: GrupoInfo | undefined;
   groupsData: GrupoInfo[] | undefined;
   isFetching: boolean;
-  onSelectGroup: (id: number) => void;
-  uuidByAlias: Record<number, Record<string, string>>;
-  setUuidByAlias: Dispatch<SetStateAction<Record<number, Record<string, string>>>>;
+  onSelectGroup: (id: string) => void;
+  uuidByAlias: Record<string, Record<string, string>>;
+  setUuidByAlias: Dispatch<SetStateAction<Record<string, Record<string, string>>>>;
 }
 
 export function AlumnosPage({
@@ -149,7 +149,7 @@ export function AlumnosPage({
         <h2 className="page-title" style={{ marginBottom: 16 }}>👥 Alumnos</h2>
         {selectedGroup && (
           <p className="page-subtitle" style={{ marginBottom: 0 }}>
-            {selectedGroup.nombre_grupo} — {selectedGroup.total_alumnos} alumno{selectedGroup.total_alumnos !== 1 ? "s" : ""}
+            {selectedGroup.nombre_grupo} — {selectedGroup.total_estudiantes} alumno{selectedGroup.total_estudiantes !== 1 ? "s" : ""}
           </p>
         )}
       </div>
