@@ -12,7 +12,7 @@ export const getBancosAsignados = async (grupo_id: string): Promise<string[]> =>
 };
 
 export const asignarBanco = async (banco_id: string, grupo_id: string): Promise<void> => {
-  await httpClient.post(`/bancos/asignar/${grupo_id}/${banco_id}`);
+  await httpClient.post("/bancos/asignar", { grupo_id, banco_id });
 };
 
 export const desasignarBanco = async (banco_id: string, grupo_id: string): Promise<void> => {
