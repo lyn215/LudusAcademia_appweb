@@ -39,7 +39,7 @@ export const analyticsItemSchema = z.object({
   misiones_completas: z.number(),
   promedio_errores: z.number(),
   monedas_totales: z.number(),
-  ultima_actividad: z.string(),
+  ultima_actividad: z.string().nullable(),
   errores_por_nivel: z.record(z.string(), z.number()).optional().default({}),
 });
 
