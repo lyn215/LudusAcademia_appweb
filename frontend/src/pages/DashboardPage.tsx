@@ -60,7 +60,13 @@ export function DashboardPage({
   useEffect(() => {
     try {
       const raw = localStorage.getItem("ludus_ultimo_codigo");
-      if (raw) setLastCode(JSON.parse(raw));
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (typeof parsed.id_grupo === "number") {
+        localStorage.removeItem("ludus_ultimo_codigo");
+        return;
+      }
+      setLastCode(parsed);
     } catch { /* ignore */ }
   }, []);
 
