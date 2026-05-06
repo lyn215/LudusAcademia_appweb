@@ -1,5 +1,7 @@
-export function formatLocalDate(iso: string): string {
-  return new Date(iso).toLocaleString();
+export function formatLocalDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? "—" : d.toLocaleString();
 }
 
 export function secondsUntil(iso: string): number {
