@@ -2,7 +2,6 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../components/Button";
-import { InputField } from "../components/Field";
 import { fetchAnalytics, actualizarAlias } from "../features/analytics/api";
 import { downloadPdf } from "../features/reports/api";
 import { formatLocalDate } from "../utils/time";
@@ -211,16 +210,8 @@ export function AlumnosPage({
                       <td style={{ color: "var(--forest-warm)", fontSize: "0.8rem" }}>
                         {formatLocalDate(row.ultima_actividad)}
                       </td>
-                      <td>
-                        <InputField
-                          value={uuid}
-                          onChange={(e) => setUuidByAlias(prev => ({
-                            ...prev,
-                            [selectedGroupId!]: { ...(prev[selectedGroupId!] ?? {}), [row.alias_alumno]: e.target.value },
-                          }))}
-                          placeholder="UUID"
-                          style={{ minWidth: 140 }}
-                        />
+                      <td className="mono" style={{ fontSize: "0.78rem", color: "var(--forest-warm)" }}>
+                        {uuid ? uuid.slice(0, 8) : "—"}
                       </td>
                       <td>
                         <Button variant="secondary"
